@@ -1,6 +1,7 @@
 #pragma once
 
 #include <math.h>
+#include <iostream>
 
 class Vec3 {
   private:
@@ -23,44 +24,52 @@ class Vec3 {
       return e[i];
     }
 
-    Vec3 multiply(float s) {
-      return Vec3(e[0] * s, e[1] * s, e[2] * s);
-    }
+    Vec3& operator+=(Vec3 v) {
+      e[0] += v[0];
+      e[1] += v[1];
+      e[2] += v[2];
 
-    Vec3 divide(float s) {
-      return Vec3(e[0] / s, e[1] / s, e[2] / s);
+      return *this;
     }
-
-    Vec3 add(Vec3 &v) {
-      return Vec3(e[0] + v[0], e[1] + v[1], e[2] + v[2]);
-    }
-
-    Vec3 minus(Vec3 &v) {
-      return Vec3(e[0] - v[0], e[1] - v[1], e[2] - v[2]);
-    }
-
-    /* Vec3 operator*(Vec3 &v, float s) {
-      return Vec3(v[0] * s, v[1] * s, v[2] * s);
-    }
-
-    Vec3 operator/(Vec3 &v, float s) {
-      return Vec3(v[0] / s, v[1] / s, v[2] / s);
-    }
-
-    Vec3 operator+(Vec3 &v1, Vec3 &v2) {
-      return Vec3(v1[0] + v2[0], v1[1] + v2[1], v1[2] + v2[2]);
-    } */
 
     Vec3 unit() {
-      return divide(length());
+      float l = length();
+
+      return Vec3(e[0] / l, e[1] / l, e[2] / l);
     }
 
     float length() {
       return sqrt(e[0] * e[0] + e[1] * e[1] + e[2] * e[2]);
     }
-
-    void print() {
-      std::cout << '[' << e[0] << ',' << e[1] << ',' << e[2] << "]\n";
-    }
 };
+
+Vec3 operator*(Vec3 v, float s) {
+  return Vec3(v[0] * s, v[1] * s, v[2] * s);
+}
+
+Vec3 operator*(float s, Vec3 v) {
+  return Vec3(v[0] * s, v[1] * s, v[2] * s);
+}
+
+Vec3 operator/(Vec3 v, float s) {
+  return Vec3(v[0] / s, v[1] / s, v[2] / s);
+}
+
+Vec3 operator/(float s, Vec3 v) {
+  return Vec3(v[0] / s, v[1] / s, v[2] / s);
+}
+
+Vec3 operator+(Vec3 v1, Vec3 v2) {
+  return Vec3(v1[0] + v2[0], v1[1] + v2[1], v1[2] + v2[2]);
+}
+
+Vec3 operator-(Vec3 v1, Vec3 v2) {
+  return Vec3(v1[0] - v2[0], v1[1] - v2[1], v1[2] - v2[2]);
+}
+
+std::ostream& operator<<(std::ostream &os, Vec3 v) {
+  os << '[' << v[0] << ',' << v[1] << ',' << v[2] << ']';
+
+  return os;
+}
 
