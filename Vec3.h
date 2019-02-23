@@ -35,6 +35,10 @@ class Vec3 {
       return Vec3(e[0] + v[0], e[1] + v[1], e[2] + v[2]);
     }
 
+    Vec3 minus(Vec3 &v) {
+      return Vec3(e[0] - v[0], e[1] - v[1], e[2] - v[2]);
+    }
+
     /* Vec3 operator*(Vec3 &v, float s) {
       return Vec3(v[0] * s, v[1] * s, v[2] * s);
     }
@@ -47,6 +51,10 @@ class Vec3 {
       return Vec3(v1[0] + v2[0], v1[1] + v2[1], v1[2] + v2[2]);
     } */
 
+    Vec3 unit() {
+      return divide(length());
+    }
+
     float length() {
       return sqrt(e[0] * e[0] + e[1] * e[1] + e[2] * e[2]);
     }
@@ -55,9 +63,4 @@ class Vec3 {
       std::cout << '[' << e[0] << ',' << e[1] << ',' << e[2] << "]\n";
     }
 };
-
-Vec3 unit_vector(Vec3 v) {
-  return v.divide(v.length());
-}
-
 
