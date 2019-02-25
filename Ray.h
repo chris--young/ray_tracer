@@ -11,7 +11,7 @@ class Ray {
       this->B = B; // direction 
     }
 
-    Vec3 point_at(float t) {
+    Vec3 pointAt(float t) {
       return A + t * B;
     }
 };

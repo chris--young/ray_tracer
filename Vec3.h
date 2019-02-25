@@ -32,6 +32,14 @@ class Vec3 {
       return *this;
     }
 
+    Vec3& operator/=(float s) {
+      e[0] /= s;
+      e[1] /= s;
+      e[2] /= s;
+
+      return *this;
+    }
+
     Vec3 unit() {
       float l = length();
 
@@ -40,6 +48,10 @@ class Vec3 {
 
     float length() {
       return sqrt(e[0] * e[0] + e[1] * e[1] + e[2] * e[2]);
+    }
+
+    float lengthSquared() {
+      return e[0] * e[0] + e[1] * e[1] + e[2] * e[2];
     }
 };
 
