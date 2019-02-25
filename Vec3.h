@@ -9,9 +9,9 @@ class Vec3 {
 
   public:
     Vec3() {
-      e[0] = 0.0;
-      e[1] = 0.0;
-      e[2] = 0.0;
+      e[0] = 0;
+      e[1] = 0;
+      e[2] = 0;
     }
 
     Vec3(float e0, float e1, float e2) {
@@ -83,9 +83,13 @@ Vec3 operator-(Vec3 v1, Vec3 v2) {
   return Vec3(v1[0] - v2[0], v1[1] - v2[1], v1[2] - v2[2]);
 }
 
-std::ostream& operator<<(std::ostream &os, Vec3 v) {
+std::ostream& operator<<(std::ostream& os, Vec3 v) {
   os << '[' << v[0] << ',' << v[1] << ',' << v[2] << ']';
 
   return os;
+}
+
+float dot(Vec3& v1, Vec3& v2) {
+  return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
 }
 

@@ -6,18 +6,12 @@
 #include "./Material.h"
 #include "./Vec3.h"
 
-class Sphere : Collidable {
+class Sphere : public Collidable {
   private:
     Vec3 position;
     float radius;
 
-    float dot(Vec3 &v1, Vec3 &v2) {
-      return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
-    }
-
   public:
-    Material *material;
-
     Sphere(Vec3 position, float radius, Material *material) {
       this->position = position;
       this->radius = radius;
@@ -32,7 +26,7 @@ class Sphere : Collidable {
       float c = dot(offset, offset) - radius * radius;
       float d = b * b - a * c;
 
-      if (d > 0.0) {
+      if (d > 0) {
         float t = (-b - sqrt(d)) / a;
 
         if (t > min && t < max) {
