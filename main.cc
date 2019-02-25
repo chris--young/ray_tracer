@@ -4,30 +4,24 @@
 #include <vector>
 
 #include "./Camera.h"
+#include "./Lambertian.h"
+#include "./Metal.h"
 #include "./Ray.h"
 #include "./Scene.h"
 #include "./Sphere.h"
 #include "./Vec3.h"
 
-Vec3 randomPointOnSphere() {
-  Vec3 point;
-  Vec3 offset(1.0, 1.0, 1.0);
-
-  do {
-    point = 2.0 * Vec3(drand48(), drand48(), drand48()) - offset;
-  } while (point.lengthSquared() >= 1.0);
-
-  return point;
-}
-
-Vec3 trace(Ray &ray, Scene scene) {
+Vec3 trace(Ray &ray, Scene scene, int depth) {
   Collision collision;
 
   if (scene.checkCollision(ray, 0.001, MAXFLOAT, collision)) {
-    Vec3 target = collision.position + collision.normal + randomPointOnSphere();
-    Ray scatter(collision.position, target - collision.position);
+    Ray scattered;
+    Vec3 attentuation;
 
-    return 0.5 * trace(scatter, scene);
+    if (depth < 50 && collision.material->scatter(ray, collision, attentuation, scattered))
+      return attentuation * trace(scattered, scene, depth + 1); 
+
+    return Vec3(0.0, 0.0, 0.0);
   }
 
   Vec3 unit = ray.B.unit();
@@ -42,9 +36,11 @@ int main() {
   const int samplesPerPixel = 100;
 
   Camera camera;
-  Sphere sphere1(Vec3(0.0, 0.0, -1.0), 0.5);
-  Sphere sphere2(Vec3(0.0, -100.5, -1.0), 100.0);
-  std::vector<Sphere> spheres = { sphere1, sphere2 };
+  Sphere sphere1(Vec3(0.0, 0.0, -1.0), 0.5, new Lambertian(Vec3(0.8, 0.3, 0.3)));
+  Sphere sphere2(Vec3(0.0, -100.5, -1.0), 100.0, new Lambertian(Vec3(0.8, 0.8, 0.0)));
+  Sphere sphere3(Vec3(1.0, 0.0, -1.0), 0.5, new Metal(Vec3(0.8, 0.6, 0.2), 0.9));
+  Sphere sphere4(Vec3(-1.0, 0.0, -1.0), 0.5, new Metal(Vec3(0.8, 0.8, 0.8), 0.3));
+  std::vector<Sphere> spheres = { sphere1, sphere2, sphere3, sphere4 };
   Scene scene(spheres);
   std::fstream imageFile("./image.ppm", std::fstream::out);
 
@@ -59,7 +55,7 @@ int main() {
         float v = ((float)y + drand48()) / (float)imageHeight;
 
         Ray ray = camera.getRay(u, v);
-        Vec3 sampleColor = trace(ray, scene);
+        Vec3 sampleColor = trace(ray, scene, 0);
 
         color += sampleColor;
       }

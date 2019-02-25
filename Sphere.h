@@ -2,15 +2,11 @@
 
 #include <math.h>
 
+#include "./Collidable.h"
+#include "./Material.h"
 #include "./Vec3.h"
 
-struct Collision {
-  float t;
-  Vec3 position;
-  Vec3 normal;
-};
-
-class Sphere {
+class Sphere : Collidable {
   private:
     Vec3 position;
     float radius;
@@ -20,12 +16,15 @@ class Sphere {
     }
 
   public:
-    Sphere(Vec3 position, float radius) {
+    Material *material;
+
+    Sphere(Vec3 position, float radius, Material *material) {
       this->position = position;
       this->radius = radius;
+      this->material = material;
     }
 
-    bool checkCollision(Ray ray, float min, float max, Collision &collision) {
+    bool checkCollision(Ray ray, float min, float max, Collision &collision) override {
       Vec3 offset = ray.A - position;
 
       float a = dot(ray.B, ray.B);
@@ -40,6 +39,7 @@ class Sphere {
           collision.t = t;
           collision.position = ray.pointAt(collision.t);
           collision.normal = (collision.position - position) / radius;
+          collision.material = material;
           return true;
         }
 
@@ -49,6 +49,7 @@ class Sphere {
           collision.t = t;
           collision.position = ray.pointAt(collision.t);
           collision.normal = (collision.position - position) / radius;
+          collision.material = material;
           return true;
         }
       }

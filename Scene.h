@@ -2,9 +2,10 @@
 
 #include <vector>
 
+#include "./Collidable.h"
 #include "./Sphere.h"
 
-class Scene {
+class Scene : Collidable {
   private:
     std::vector<Sphere> spheres;
 
@@ -13,7 +14,7 @@ class Scene {
       this->spheres = spheres;
     }
 
-    bool checkCollision(Ray ray, float min, float max, Collision &collision) {
+    bool checkCollision(Ray ray, float min, float max, Collision &collision) override {
       Collision c;
       bool collided = false;
       float closest = max;
@@ -23,6 +24,7 @@ class Scene {
           collided = true;
           closest = c.t;
           collision = c;
+          c.material = spheres[x].material;
         }
       }
 
