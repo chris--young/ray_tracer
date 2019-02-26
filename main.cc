@@ -2,6 +2,8 @@
 #include <fstream>
 #include <random>
 #include <vector>
+#include <limits>
+#include <stdlib.h>
 
 #include "./Camera.h"
 #include "./Collidable.h"
@@ -12,10 +14,14 @@
 #include "./Sphere.h"
 #include "./Vec3.h"
 
+float random() {
+	return (float)rand() / (float)RAND_MAX;
+}
+
 Vec3 trace(Ray& ray, Scene* scene, int depth) {
   Collision collision;
 
-  if (scene->checkCollision(ray, 0.001, MAXFLOAT, collision)) {
+  if (scene->checkCollision(ray, 0.001, std::numeric_limits<float>::max(), collision)) {
     Ray scattered;
     Vec3 attentuation;
 
@@ -52,8 +58,8 @@ int main() {
       Vec3 color;
 
       for (int sample = 0; sample < samplesPerPixel; ++sample) {
-        float u = ((float)x + drand48()) / (float)imageWidth;
-        float v = ((float)y + drand48()) / (float)imageHeight;
+        float u = ((float)x + random()) / (float)imageWidth;
+        float v = ((float)y + random()) / (float)imageHeight;
 
         Ray ray = camera.getRay(u, v);
         Vec3 sampleColor = trace(ray, scene, 0);
