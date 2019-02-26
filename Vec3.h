@@ -24,6 +24,10 @@ class Vec3 {
       return e[i];
     }
 
+    Vec3 operator-() {
+      return Vec3(-e[0], -e[1], -e[2]);
+    }
+
     Vec3& operator+=(Vec3 v) {
       e[0] += v[0];
       e[1] += v[1];

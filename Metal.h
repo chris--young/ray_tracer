@@ -9,10 +9,6 @@ class Metal : public Material {
     Vec3 albedo;
     float blur;
 
-    Vec3 reflect(Vec3 v, Vec3 n) {
-      return v - 2 * dot(v, n) * n;
-    }
-
   public:
     Metal(Vec3 albedo, float blur) {
       this->albedo = albedo;

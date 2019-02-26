@@ -7,9 +7,9 @@
 
 class Material {
   private:
-	float random() {
-		return (float)rand() / (float)RAND_MAX;
-	}
+	  float random() {
+		  return (float)rand() / (float)RAND_MAX;
+	  }
 
   protected:
     Vec3 randomPointOnSphere() {
@@ -21,6 +21,10 @@ class Material {
       } while (point.lengthSquared() >= 1);
 
       return point;
+    }
+
+    Vec3 reflect(Vec3 v, Vec3 n) {
+      return v - 2 * dot(v, n) * n;
     }
 
   public:

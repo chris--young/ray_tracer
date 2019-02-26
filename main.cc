@@ -7,6 +7,7 @@
 
 #include "./Camera.h"
 #include "./Collidable.h"
+#include "./Dielectric.h"
 #include "./Lambertian.h"
 #include "./Metal.h"
 #include "./Ray.h"
@@ -43,10 +44,10 @@ int main() {
   const int samplesPerPixel = 100;
 
   Camera camera;
-  Sphere* sphere1 = new Sphere(Vec3(0, 0, -1), 0.5, new Lambertian(Vec3(0.8, 0.3, 0.3)));
-  Sphere* sphere2 = new Sphere(Vec3(0, -100.5, -1.0), 100.0, new Lambertian(Vec3(0.8, 0.8, 0.0)));
-  Sphere* sphere3 = new Sphere(Vec3(1, 0, -1), 0.5, new Metal(Vec3(0.8, 0.6, 0.2), 0.9));
-  Sphere* sphere4 = new Sphere(Vec3(-1, 0, -1), 0.5, new Metal(Vec3(0.8, 0.8, 0.8), 0.3));
+  Sphere* sphere1 = new Sphere(Vec3(0, 0, -1), 0.5, new Lambertian(Vec3(0.1, 0.2, 0.5)));
+  Sphere* sphere2 = new Sphere(Vec3(-1, -100.5, -1.0), 100.0, new Lambertian(Vec3(0.8, 0.8, 0.0)));
+  Sphere* sphere3 = new Sphere(Vec3(1, 0, -1), 0.5, new Metal(Vec3(0.8, 0.6, 0.2), 0.1));
+  Sphere* sphere4 = new Sphere(Vec3(-1, 0, -1), 0.5, new Dielectric(1.5));
   std::vector<Collidable*> spheres = { sphere1, sphere2, sphere3, sphere4 };
   Scene* scene = new Scene(spheres);
   std::fstream imageFile("./image.ppm", std::fstream::out);
