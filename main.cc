@@ -1,3 +1,4 @@
+#include <chrono>
 #include <iostream>
 #include <fstream>
 #include <random>
@@ -15,8 +16,12 @@
 #include "./Sphere.h"
 #include "./Vec3.h"
 
-float random() {
-	return (float)rand() / (float)RAND_MAX;
+long random() {
+  return (float)rand() / (float)RAND_MAX;
+}
+
+unsigned long now() {
+  return std::chrono::system_clock::now().time_since_epoch().count();
 }
 
 Vec3 trace(Ray& ray, Scene* scene, int depth) {
@@ -38,12 +43,30 @@ Vec3 trace(Ray& ray, Scene* scene, int depth) {
   return Vec3(1, 1, 1) * (1 - t) + Vec3(0.5, 0.7, 1.0) * t;
 }
 
-int main() {
-  const int imageWidth = 800;
-  const int imageHeight = 400;
-  const int samplesPerPixel = 100;
+int logStatus(int previousLength, int processed, int total) {
+  std::string cls;
 
-  Camera camera;
+  for (int x = previousLength; x > 0; --x)
+    cls += '\b';
+
+  std::string log = "processed " + std::to_string(processed) + " of " + std::to_string(total) + " samples";
+
+  std::cout << cls << log;
+
+  return log.length();
+}
+
+int main() {
+  unsigned long start = now();
+
+  const int imageWidth = 400;
+  const int imageHeight = 200;
+  const int samplesPerPixel = 100;
+  const int totalSamples = imageWidth * imageHeight * samplesPerPixel;
+  int processedSamples = 0;
+  int logLineLength = 100;
+
+  Camera camera(imageWidth, imageHeight, 45);
   Sphere* sphere1 = new Sphere(Vec3(0, 0, -1), 0.5, new Lambertian(Vec3(0.1, 0.2, 0.5)));
   Sphere* sphere2 = new Sphere(Vec3(-1, -100.5, -1.0), 100.0, new Lambertian(Vec3(0.8, 0.8, 0.0)));
   Sphere* sphere3 = new Sphere(Vec3(1, 0, -1), 0.5, new Metal(Vec3(0.8, 0.6, 0.2), 0.1));
@@ -53,6 +76,8 @@ int main() {
   std::fstream imageFile("./image.ppm", std::fstream::out);
 
   imageFile << "P3\n" << imageWidth << ' ' << imageHeight << "\n255\n";
+
+  std::cout << "processed " << processedSamples << " of " << totalSamples << " samples";
 
   for (int y = imageHeight - 1; y >= 0; --y) {
     for (int x = 0; x < imageWidth; ++x) {
@@ -68,6 +93,8 @@ int main() {
         color += sampleColor;
       }
 
+      logLineLength = logStatus(logLineLength, processedSamples += samplesPerPixel, totalSamples);
+
       color /= samplesPerPixel;
       color = Vec3(sqrt(color[0]), sqrt(color[1]), sqrt(color[2]));
 
@@ -80,6 +107,8 @@ int main() {
   }
 
   imageFile.close();
+
+  std::cout << "\nrender time: " << (now() - start) / 1000.0 << " ms\n";
 
   return 0;
 }
