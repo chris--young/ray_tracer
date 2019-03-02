@@ -66,7 +66,7 @@ int main() {
   int processedSamples = 0;
   int logLineLength = 100;
 
-  Camera camera(imageWidth, imageHeight, 45);
+  Camera camera(imageWidth, imageHeight, 45, Vec3(-2, 2, 2), Vec3(0, 0, -1), Vec3(0, 1, 0));
   Sphere* sphere1 = new Sphere(Vec3(0, 0, -1), 0.5, new Lambertian(Vec3(0.1, 0.2, 0.5)));
   Sphere* sphere2 = new Sphere(Vec3(-1, -100.5, -1.0), 100.0, new Lambertian(Vec3(0.8, 0.8, 0.0)));
   Sphere* sphere3 = new Sphere(Vec3(1, 0, -1), 0.5, new Metal(Vec3(0.8, 0.6, 0.2), 0.1));

@@ -97,3 +97,11 @@ float dot(Vec3& v1, Vec3& v2) {
   return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
 }
 
+Vec3 cross(Vec3& v1, Vec3& v2) {
+  float x = v1[1] * v2[2] - v1[2] * v2[1];
+  float y = -(v1[0] * v2[2] - v1[2] * v2[0]);
+  float z = v1[0] * v2[1] - v1[1] * v2[0];
+
+  return Vec3(x, y, z);
+}
+
