@@ -1,7 +1,7 @@
 ray_tracer
 ray_tracer.exe
 debug
-debug.dSYM\
+debug.dSYM
 debug.exe
 
 image.ppm

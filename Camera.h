@@ -1,10 +1,11 @@
 #pragma once
 
-#define _USE_MATH_DEFINES
 #include <math.h>
 
 #include "./Vec3.h"
 #include "./Ray.h"
+
+#define M_PI 3.14159265358979323846
 
 class Camera {
   private:
