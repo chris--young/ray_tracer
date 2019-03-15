@@ -1,9 +1,0 @@
-ray_tracer
-ray_tracer.exe
-debug
-debug.dSYM
-debug.exe
-
-image.ppm
-
-.vs/

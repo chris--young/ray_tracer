@@ -57,7 +57,7 @@ unsigned int logStatus(unsigned int previousLength, unsigned int processed, unsi
   return log.length();
 }
 
-Scene* setupScene() {
+Scene* setupScene(int numSpheres) {
   Sphere* sphere1 = new Sphere(Vec3(0, -1000, 0), 1000, new Lambertian(Vec3(0.5, 0.5, 0.5)));
   Sphere* sphere2 = new Sphere(Vec3(0, 1, 0), 1, new Dielectric(1.5));
   Sphere* sphere3 = new Sphere(Vec3(-4, 1, 0), 1, new Lambertian(Vec3(0.4, 0.2, 0.1)));
@@ -65,8 +65,8 @@ Scene* setupScene() {
 
   std::vector<Collidable*> spheres = { sphere1, sphere2, sphere3, sphere4 };
 
-  for (int a = -11; a < 11; ++a) {
-    for (int b = -11; b < 11; ++b) {
+  for (int a = -numSpheres; a < numSpheres; ++a) {
+    for (int b = -numSpheres; b < numSpheres; ++b) {
       Vec3 position(a + 0.9 * _random(), 0.2, b + 0.9 * _random()); 
 
       if ((position - Vec3(4, 0.2, 0)).length() > 0.9) { 
@@ -88,13 +88,13 @@ Scene* setupScene() {
 int main() {
   const unsigned long start = now();
 
-  const unsigned int imageWidth = 2880;
-  const unsigned int imageHeight = 1800;
+  const unsigned int imageWidth = 640; // 2880;
+  const unsigned int imageHeight = 480; // 1800;
   const unsigned int samplesPerPixel = 100;
   const unsigned int totalSamples = imageWidth * imageHeight * samplesPerPixel;
 
-  Camera camera(imageWidth, imageHeight, 20, Vec3(13, 2, 3), Vec3(0, 0, 0), Vec3(0, 1, 0));
-  Scene* scene = setupScene();
+  Camera camera(imageWidth, imageHeight, 20, 0.1, 10, Vec3(13, 2, 3), Vec3(0, 0, 0), Vec3(0, 1, 0));
+  Scene* scene = setupScene(11);
 
   std::vector<std::vector<Ray>> rays;
 
@@ -124,7 +124,7 @@ int main() {
     unsigned int start = rays.size() / maxThreads * x;
     unsigned int stop = rays.size() / maxThreads * (x + 1);
 
-    //threads.push_back(std::thread([&]{
+    // threads.push_back(std::thread([&]{
       for (unsigned int y = start; y < stop; ++y) {
         Vec3 color;
 
@@ -142,7 +142,7 @@ int main() {
           (unsigned int)(255.99 * color[2])
         });
       }
-    //}));
+    // }));
   }
 
   // for (unsigned int x = 0; x < threads.size(); ++x)
