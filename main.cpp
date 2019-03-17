@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <mutex>
 #include <random>
 #include <stdlib.h>
 #include <thread>
@@ -22,7 +23,7 @@ float _random() {
 }
 
 unsigned long now() {
-  return std::chrono::system_clock::now().time_since_epoch().count();
+  return std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
 }
 
 Vec3 trace(Ray& ray, Scene* scene, unsigned int depth) {
@@ -42,19 +43,6 @@ Vec3 trace(Ray& ray, Scene* scene, unsigned int depth) {
   float t = 0.5 * (unit[1] + 1);
 
   return Vec3(1, 1, 1) * (1 - t) + Vec3(0.5, 0.7, 1.0) * t;
-}
-
-unsigned int logStatus(unsigned int previousLength, unsigned int processed, unsigned int total) {
-  std::string cls;
-
-  for (int x = previousLength; x > 0; --x)
-    cls += '\b';
-
-  std::string log = "processed " + std::to_string(processed) + " of " + std::to_string(total) + " samples";
-
-  std::cout << cls << log;
-
-  return log.length();
 }
 
 Scene* setupScene(int numSpheres) {
@@ -85,80 +73,92 @@ Scene* setupScene(int numSpheres) {
   return new Scene(spheres);
 }
 
+class Pixel {
+  public:
+    unsigned int x, y;
+
+    Pixel(unsigned int x, unsigned int y) {
+      this->x = x;
+      this->y = y;
+    }
+};
+
 int main() {
   const unsigned long start = now();
 
-  const unsigned int imageWidth = 640; // 2880;
-  const unsigned int imageHeight = 480; // 1800;
+  const unsigned int imageWidth = 320; // 2560;
+  const unsigned int imageHeight = 240; // 1440;
   const unsigned int samplesPerPixel = 100;
   const unsigned int totalSamples = imageWidth * imageHeight * samplesPerPixel;
 
   Camera camera(imageWidth, imageHeight, 20, 0.1, 10, Vec3(13, 2, 3), Vec3(0, 0, 0), Vec3(0, 1, 0));
-  Scene* scene = setupScene(11);
+  Scene* scene = setupScene(1);
+  std::fstream imageFile("./image.ppm", std::fstream::out);
+  unsigned int processedSamples = 0;
 
-  std::vector<std::vector<Ray>> rays;
+  imageFile << "P3\n" << imageWidth << ' ' << imageHeight << "\n255\n";
+  std::cout << imageWidth << 'x' << imageHeight << " (" << samplesPerPixel << " samples per pixel)\n";
+
+  std::vector<Pixel> pixels;
 
   for (int y = imageHeight - 1; y >= 0; --y) {
     for (unsigned int x = 0; x < imageWidth; ++x) {
-      std::vector<Ray> samples;
-
-      for (unsigned int sample = 0; sample < samplesPerPixel; ++sample) {
-        float u = ((float)x + _random()) / (float)imageWidth;
-        float v = ((float)y + _random()) / (float)imageHeight;
-
-        samples.push_back(camera.getRay(u, v));
-      }
-
-      rays.push_back(samples);
+      pixels.push_back(Pixel(x, (unsigned int)y));
     }
   }
 
-  const unsigned int maxThreads = std::thread::hardware_concurrency();
-  std::vector<std::thread> threads;
-  std::vector<std::vector<unsigned int>> colors(imageWidth * imageHeight);
+  unsigned int threadCount = std::thread::hardware_concurrency();
+  std::vector<std::vector<Pixel>> pixelChunks;
+  unsigned int chunkSize = pixels.size() / threadCount;
 
-  unsigned int logLineLength = 100;
-  unsigned int processedSamples = 0;
+  for (size_t x = 0; x < pixels.size(); x += chunkSize) {
+    std::vector<Pixel> chunk;
 
-  for (unsigned int x = 0; x < maxThreads; ++x) {
-    unsigned int start = rays.size() / maxThreads * x;
-    unsigned int stop = rays.size() / maxThreads * (x + 1);
+    for (size_t y = 0; y < chunkSize; ++y)
+      chunk.push_back(pixels[x + y]);
 
-    // threads.push_back(std::thread([&]{
-      for (unsigned int y = start; y < stop; ++y) {
-        Vec3 color;
-
-        logLineLength = logStatus(logLineLength, processedSamples += samplesPerPixel, totalSamples);
-
-        for (unsigned int sample = 0; sample < samplesPerPixel; ++sample)
-          color += trace(rays[y][sample], scene, 0);
-
-        color /= samplesPerPixel;
-        color = Vec3(sqrt(color[0]), sqrt(color[1]), sqrt(color[2]));
-
-        colors[y] = std::vector<unsigned int>({
-          (unsigned int)(255.99 * color[0]),
-          (unsigned int)(255.99 * color[1]),
-          (unsigned int)(255.99 * color[2])
-        });
-      }
-    // }));
+    pixelChunks.push_back(chunk);
   }
 
-  // for (unsigned int x = 0; x < threads.size(); ++x)
-    // threads[x].join();
+  std::vector<std::vector<Vec3>> pixelColors(pixelChunks.size());
+  std::vector<std::thread> threads;
+  std::mutex logMutex;
 
-  std::fstream imageFile("./image.ppm", std::fstream::out);
+  for (size_t x = 0; x < pixelChunks.size(); ++x) {
+    threads.push_back(std::thread([&, x]() {
+      pixelColors[x] = std::vector<Vec3>(pixelChunks[x].size());
 
-  imageFile << "P3\n" << imageWidth << ' ' << imageHeight << "\n255\n";
+      for (size_t y = 0; y < pixelChunks[x].size(); ++y) {
+        Vec3 color;
 
-  for (unsigned int x = 0; x < colors.size(); ++x)
-    imageFile << colors[x][0] << ' ' << colors[x][1] << ' ' << colors[x][2] << std::endl;
+        for (unsigned int sample = 0; sample < samplesPerPixel; ++sample) {
+          float u = ((float)pixelChunks[x][y].x + _random()) / (float)imageWidth;
+          float v = ((float)pixelChunks[x][y].y + _random()) / (float)imageHeight;
+
+          Ray ray = camera.getRay(u, v);
+          color += trace(ray, scene, 0);
+        }
+
+        color /= samplesPerPixel;
+        pixelColors[x][y] = Vec3(255.99 * sqrt(color[0]), 255.99 * sqrt(color[1]), 255.99 * sqrt(color[2]));
+
+        logMutex.lock();
+        std::cout << "\rprocessed " + std::to_string(processedSamples += samplesPerPixel) + " of " + std::to_string(totalSamples) + " samples";
+        logMutex.unlock();
+      }
+    }));
+  }
+
+  for (size_t x = 0; x < threads.size(); ++x)
+    threads[x].join();
+
+  for (size_t x = 0; x < pixelColors.size(); ++x)
+    for (size_t y = 0; y < pixelColors[x].size(); ++y)
+      imageFile << pixelColors[x][y][0] << ' ' << pixelColors[x][y][1] << ' ' << pixelColors[x][y][2] << std::endl;
 
   imageFile.close();
 
-  std::cout << "\nrender time: " << (now() - start) / 1000.0 << " ms\n";
+  std::cout << "\nrendered in " << (now() - start) / 1000.0 << "s\n";
 
   return 0;
 }
-

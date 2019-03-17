@@ -19,7 +19,7 @@ class Scene : Collidable {
       bool collided = false;
       float closest = max;
 
-      for (int x = 0; x < bodies.size(); ++x) {
+      for (size_t x = 0; x < bodies.size(); ++x) {
         if (bodies[x]->checkCollision(ray, min, closest, c)) {
           collided = true;
           closest = c.t;
